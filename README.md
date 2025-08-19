@@ -1,7 +1,7 @@
 # argocd-helmfile-plugin
 
-![Image](https://img.shields.io/docker/pulls/code-tool/argocd-helmfile-plugin.svg)
-![Image](https://img.shields.io/github/actions/workflow/status/code-tool/argocd-helmfile-plugin/ci.yml?branch=main&style=flat-square)
+![Image](https://img.shields.io/docker/pulls/avbit/argocd-helmfile-plugin.svg)
+![Image](https://img.shields.io/github/actions/workflow/status/avbit/argocd-helmfile-plugin/ci.yml?branch=master&style=flat-square)
 
 # Intro
 
