@@ -26,7 +26,7 @@ jobs:
 
       # Registry 1. GitHub Container Registry (GHCR)
       - name: Build and push to GHCR
-        uses: ./.github/actions/docker-push
+        uses: ./.github/actions/docker-push-composite
         with:
           registry: ghcr.io
           image: ghcr.io/${{ github.repository }}
@@ -36,7 +36,7 @@ jobs:
 
       # Registry 2. DockerHub (only if credentials are provided)
       - name: Build and push to DockerHub
-        uses: ./.github/actions/docker-push
+        uses: ./.github/actions/docker-push-composite
         if: ${{ env.DOCKER_USERNAME }}
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}

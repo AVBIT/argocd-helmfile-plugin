@@ -1,4 +1,4 @@
-# .github/actions/docker-push/action.yml
+# .github/actions/docker-push-composite/action.yml
 name: "Docker Push Composite"
 description: "Build and push Docker image to any registry"
 runs:
