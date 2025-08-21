@@ -38,7 +38,7 @@ jobs:
 
       # Registry 1. GitHub Container Registry (GHCR)
       - name: Generate Docker Metadata
-        id: meta
+        id: metadata
         uses: docker/metadata-action@v5
         with:
           images: ghcr.io/${{ github.repository }}
@@ -62,15 +62,15 @@ jobs:
           platforms: linux/amd64,linux/arm64   # multi-arch support
           file: docker/Dockerfile
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.metadata.outputs.tags }}
+          labels: ${{ steps.metadata.outputs.labels }}
 
       # Registry 2. DockerHub (only if credentials are provided)
       - name: Generate Docker Metadata
         if: ${{ env.DOCKER_USERNAME }}
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-        id: meta
+        id: metadata2
         uses: docker/metadata-action@v5
         with:
           images: ${{ github.repository }}
@@ -99,5 +99,5 @@ jobs:
           platforms: linux/amd64,linux/arm64   # multi-arch support
           file: docker/Dockerfile
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.metadata2.outputs.tags }}
+          labels: ${{ steps.metadata2.outputs.labels }}
