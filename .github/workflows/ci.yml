@@ -1,0 +1,103 @@
+name: CI
+
+on:
+  push:
+#    branches-ignore:
+#      - main      # primary branch of the original repository (upstream), used to fetch updates
+#    branches:
+#      - master    # local branch in our fork, used for our own changes and builds
+#      - next      # experimental or feature branch for upcoming changes
+    tags:
+      - "*"
+
+permissions:
+  contents: read      # needed for checkout
+  packages: write     # needed to push to GHCR
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Cancel any previous runs on the same branch/tag to avoid overlapping builds
+      - name: Cancel previous runs
+        uses: styfle/cancel-workflow-action@0.12.0
+        with:
+          access_token: ${{ github.token }}
+
+      # Checkout the repository
+      - uses: actions/checkout@v4
+
+      # Set up QEMU for multi-architecture builds
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      # Set up Docker Buildx for multi-architecture build support
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Registry 1. GitHub Container Registry (GHCR)
+      - name: Generate Docker Metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=ref,event=tag
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+          flavor: latest=true
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image to GHCR
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64   # multi-arch support
+          file: docker/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      # Registry 2. DockerHub (only if credentials are provided)
+      - name: Generate Docker Metadata
+        if: ${{ env.DOCKER_USERNAME }}
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ github.repository }}
+          tags: |
+            type=ref,event=tag
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+          flavor: latest=true
+
+      - name: Log in to DockerHub
+        if: ${{ env.DOCKER_USERNAME }}
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push Docker image to DockerHub
+        if: ${{ env.DOCKER_USERNAME }}
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64   # multi-arch support
+          file: docker/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
